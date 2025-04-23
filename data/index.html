@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Smart Parking Monitor</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="icon" type="image/png" href="favicon.png">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" type="text/css" href="style.css">
+</head>
+<body>
+    <div class="header">
+        <div class="logo">
+            <i class="fas fa-parking"></i>
+        </div>
+        <h1>Smart Parking Monitor</h1>
+    </div>
+
+    <div class="dashboard">
+        <div class="status-container">
+            <div class="status-card">
+                <div class="card-header">
+                    <i class="fas fa-chart-pie"></i>
+                    <h2>Parking Overview</h2>
+                </div>
+                <div class="parking-summary">
+                    <div class="summary-item">
+                        <div class="summary-value" id="available-count">0</div>
+                        <div class="summary-label">Available</div>
+                    </div>
+                    <div class="summary-item">
+                        <div class="summary-value" id="reserved-count">0</div>
+                        <div class="summary-label">Reserved</div>
+                    </div>
+                    <div class="summary-item">
+                        <div class="summary-value" id="occupied-count">0</div>
+                        <div class="summary-label">Occupied</div>
+                    </div>
+                    <div class="summary-item">
+                        <div class="summary-value" id="total-spots">2</div>
+                        <div class="summary-label">Total</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="parking-visualization">
+            <div class="visual-title">
+                <i class="fas fa-map-marker-alt"></i>
+                <h2>Parking Lot Status</h2>
+            </div>
+            <div class="parking-lot">
+                <div class="parking-spot" id="spot1">
+                    <i class="fas fa-car"></i>
+                    <span>Spot 1</span>
+                    <div class="sensor-value">Status: <span id="ir_sensor1">--</span></div>
+                    <button class="reserve-button" id="reserve-button1">Reserve Spot</button>
+                    <button class="cancel-button" id="cancel-button1">Cancel Reservation</button>
+                </div>
+                <div class="parking-spot" id="spot2">
+                    <i class="fas fa-car"></i>
+                    <span>Spot 2</span>
+                    <div class="sensor-value">Status: <span id="ir_sensor2">--</span></div>
+                    <button class="reserve-button" id="reserve-button2">Reserve Spot</button>
+                    <button class="cancel-button" id="cancel-button2">Cancel Reservation</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="reservation-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-button">&times;</span>
+            <h2>Reservation Confirmed</h2>
+            <p>Your parking spot has been reserved. Please arrive within 30 minutes to claim your spot.</p>
+            <div class="reservation-time">
+                <p>Reserved at: <span id="reservation-timestamp"></span></p>
+                <p>Expires at: <span id="expiration-timestamp"></span></p>
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        <p>Mall Parking System | ESP32 WebSocket Demo</p>
+    </footer>
+
+    <script src="script.js"></script>
+    <script>
+        // Additional script to handle UI interactions and state management
+        document.addEventListener('DOMContentLoaded', function() {
+            // Keep track of reservations
+            const reservations = {
+                spot1: false,
+                spot2: false
+            };
+            
+            // Get all needed elements
+            const spot1 = document.getElementById('spot1');
+            const spot2 = document.getElementById('spot2');
+            const reserveButton1 = document.getElementById('reserve-button1');
+            const reserveButton2 = document.getElementById('reserve-button2');
+            const cancelButton1 = document.getElementById('cancel-button1');
+            const cancelButton2 = document.getElementById('cancel-button2');
+            const modal = document.getElementById('reservation-modal');
+            const closeButton = document.querySelector('.close-button');
+            const reservationTimestamp = document.getElementById('reservation-timestamp');
+            const expirationTimestamp = document.getElementById('expiration-timestamp');
+            
+            // Initially hide cancel buttons
+            cancelButton1.style.display = 'none';
+            cancelButton2.style.display = 'none';
+            
+            // Function to update counts
+            function updateCounts() {
+                let availableCount = 0;
+                let reservedCount = 0;
+                let occupiedCount = 0;
+                
+                // Check spot1
+                if (spot1.classList.contains('available')) availableCount++;
+                else if (spot1.classList.contains('reserved')) reservedCount++;
+                else if (spot1.classList.contains('occupied')) occupiedCount++;
+                
+                // Check spot2
+                if (spot2.classList.contains('available')) availableCount++;
+                else if (spot2.classList.contains('reserved')) reservedCount++;
+                else if (spot2.classList.contains('occupied')) occupiedCount++;
+                
+                document.getElementById('available-count').innerText = availableCount;
+                document.getElementById('reserved-count').innerText = reservedCount;
+                document.getElementById('occupied-count').innerText = occupiedCount;
+            }
+            
+            // Function to update parking status based on sensor values
+            function updateParkingStatus() {
+                // Process spot1
+                const sensorValue1 = document.getElementById('ir_sensor1').innerText;
+                if (sensorValue1 !== "--") {
+                    const isOccupied1 = sensorValue1 === "0";
+                    
+                    // Only update if not already reserved
+                    if (!reservations.spot1) {
+                        if (isOccupied1) {
+                            spot1.classList.remove('available', 'reserved');
+                            spot1.classList.add('occupied');
+                            reserveButton1.style.display = 'none';
+                        } else {
+                            spot1.classList.remove('occupied', 'reserved');
+                            spot1.classList.add('available');
+                            reserveButton1.style.display = 'block';
+                        }
+                    }
+                }
+                
+                // Process spot2
+                const sensorValue2 = document.getElementById('ir_sensor2').innerText;
+                if (sensorValue2 !== "--") {
+                    const isOccupied2 = sensorValue2 === "0";
+                    
+                    // Only update if not already reserved
+                    if (!reservations.spot2) {
+                        if (isOccupied2) {
+                            spot2.classList.remove('available', 'reserved');
+                            spot2.classList.add('occupied');
+                            reserveButton2.style.display = 'none';
+                        } else {
+                            spot2.classList.remove('occupied', 'reserved');
+                            spot2.classList.add('available');
+                            reserveButton2.style.display = 'block';
+                        }
+                    }
+                }
+                
+                updateCounts();
+            }
+            
+            // Reserve button click handlers
+            reserveButton1.addEventListener('click', function() {
+                if (spot1.classList.contains('available')) {
+                    spot1.classList.remove('available');
+                    spot1.classList.add('reserved');
+                    reservations.spot1 = true;
+                    reserveButton1.style.display = 'none';
+                    cancelButton1.style.display = 'block';
+                    
+                    // Show reservation confirmation
+                    showReservationConfirmation('spot1');
+                    updateCounts();
+                }
+            });
+            
+            reserveButton2.addEventListener('click', function() {
+                if (spot2.classList.contains('available')) {
+                    spot2.classList.remove('available');
+                    spot2.classList.add('reserved');
+                    reservations.spot2 = true;
+                    reserveButton2.style.display = 'none';
+                    cancelButton2.style.display = 'block';
+                    
+                    // Show reservation confirmation
+                    showReservationConfirmation('spot2');
+                    updateCounts();
+                }
+            });
+            
+            // Cancel button click handlers
+            cancelButton1.addEventListener('click', function() {
+                spot1.classList.remove('reserved');
+                spot1.classList.add('available');
+                reservations.spot1 = false;
+                cancelButton1.style.display = 'none';
+                reserveButton1.style.display = 'block';
+                updateCounts();
+            });
+            
+            cancelButton2.addEventListener('click', function() {
+                spot2.classList.remove('reserved');
+                spot2.classList.add('available');
+                reservations.spot2 = false;
+                cancelButton2.style.display = 'none';
+                reserveButton2.style.display = 'block';
+                updateCounts();
+            });
+            
+            // Format time function
+            function formatTime(date) {
+                return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+            }
+            
+            // Show reservation confirmation modal
+            function showReservationConfirmation(spotId) {
+                const now = new Date();
+                const expirationTime = new Date(now.getTime() + 60 * 1000); // 30 minutes later
+                
+                reservationTimestamp.textContent = formatTime(now);
+                expirationTimestamp.textContent = formatTime(expirationTime);
+                
+                modal.style.display = 'block';
+                
+                // Set a timeout to auto-expire the reservation
+                setTimeout(function() {
+                    if (spotId === 'spot1' && reservations.spot1) {
+                        // Only expire if still reserved (not occupied)
+                        const currentStatus = document.getElementById('ir_sensor1').innerText;
+                        if (currentStatus !== "0") {
+                            spot1.classList.remove('reserved');
+                            spot1.classList.add('available');
+                            reservations.spot1 = false;
+                            cancelButton1.style.display = 'none';
+                            reserveButton1.style.display = 'block';
+                            updateCounts();
+                        }
+                    } else if (spotId === 'spot2' && reservations.spot2) {
+                        // Only expire if still reserved (not occupied)
+                        const currentStatus = document.getElementById('ir_sensor2').innerText;
+                        if (currentStatus !== "Object Detected") {
+                            spot2.classList.remove('reserved');
+                            spot2.classList.add('available');
+                            reservations.spot2 = false;
+                            cancelButton2.style.display = 'none';
+                            reserveButton2.style.display = 'block';
+                            updateCounts();
+                        }
+                    }
+                }, 60 * 1000);
+            }
+            
+            // Close modal when clicking the X
+            closeButton.addEventListener('click', function() {
+                modal.style.display = 'none';
+            });
+            
+            // Close modal when clicking outside of it
+            window.addEventListener('click', function(event) {
+                if (event.target === modal) {
+                    modal.style.display = 'none';
+                }
+            });
+            
+            // Monitor changes to sensor elements
+            const sensorElements = [
+                document.getElementById('ir_sensor1'),
+                document.getElementById('ir_sensor2')
+            ];
+            
+            // Create observers for sensors
+            sensorElements.forEach(element => {
+                if (element) {
+                    const observer = new MutationObserver(function(mutations) {
+                        updateParkingStatus();
+                    });
+                    
+                    observer.observe(element, { 
+                        childList: true,
+                        characterData: true,
+                        subtree: true
+                    });
+                }
+            });
+            
+            // Initialize status
+            updateParkingStatus();
+        });
+    </script>
+</body>
+</html>

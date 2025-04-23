@@ -1,0 +1,405 @@
+/* Base Styles */
+:root {
+  --primary-color: #3498db;
+  --secondary-color: #2c3e50;
+  --accent-color: #e74c3c;
+  --text-color: #333;
+  --light-color: #ecf0f1;
+  --dark-color: #2c3e50;
+  --available-color: #2ecc71;
+  --reserved-color: #f39c12;
+  --occupied-color: #e74c3c;
+  --shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html, body {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  line-height: 1.6;
+  color: var(--text-color);
+  background-color: #f8f9fa;
+  height: 100%;
+}
+
+body {
+  display: flex;
+  flex-direction: column;
+}
+
+/* Header */
+.header {
+  background: linear-gradient(135deg, var(--primary-color), var(--dark-color));
+  color: white;
+  padding: 1rem 2rem;
+  display: flex;
+  align-items: center;
+  box-shadow: var(--shadow);
+}
+
+.logo {
+  font-size: 2rem;
+  margin-right: 1rem;
+  color: white;
+  background-color: rgba(255, 255, 255, 0.2);
+  width: 50px;
+  height: 50px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+}
+
+.header h1 {
+  font-size: 1.5rem;
+  font-weight: 500;
+}
+
+/* Dashboard */
+.dashboard {
+  flex: 1;
+  padding: 2rem;
+  max-width: 1200px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+/* Status Card */
+.status-container {
+  margin-bottom: 2rem;
+}
+
+.status-card {
+  background-color: white;
+  border-radius: 10px;
+  box-shadow: var(--shadow);
+  overflow: hidden;
+}
+
+.card-header {
+  background-color: var(--secondary-color);
+  color: white;
+  padding: 1rem;
+  display: flex;
+  align-items: center;
+}
+
+.card-header i {
+  font-size: 1.5rem;
+  margin-right: 0.8rem;
+}
+
+.card-header h2 {
+  font-size: 1.3rem;
+  font-weight: 500;
+}
+
+/* Parking Summary */
+.parking-summary {
+  display: flex;
+  justify-content: space-around;
+  padding: 2rem;
+}
+
+.summary-item {
+  text-align: center;
+  flex: 1;
+  padding: 1rem;
+}
+
+.summary-value {
+  font-size: 3rem;
+  font-weight: bold;
+  margin-bottom: 0.5rem;
+}
+
+.summary-item:nth-child(1) .summary-value {
+  color: var(--available-color);
+}
+
+.summary-item:nth-child(2) .summary-value {
+  color: var(--reserved-color);
+}
+
+.summary-item:nth-child(3) .summary-value {
+  color: var(--occupied-color);
+}
+
+.summary-item:nth-child(4) .summary-value {
+  color: var(--primary-color);
+}
+
+.summary-label {
+  font-size: 1.2rem;
+  color: var(--secondary-color);
+}
+
+/* Parking Visualization */
+.parking-visualization {
+  background-color: white;
+  border-radius: 10px;
+  box-shadow: var(--shadow);
+  overflow: hidden;
+}
+
+.visual-title {
+  background-color: var(--secondary-color);
+  color: white;
+  padding: 1rem;
+  display: flex;
+  align-items: center;
+}
+
+.visual-title i {
+  font-size: 1.5rem;
+  margin-right: 0.8rem;
+}
+
+.visual-title h2 {
+  font-size: 1.3rem;
+  font-weight: 500;
+}
+
+.parking-lot {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 1.5rem;
+  padding: 2rem;
+}
+
+.parking-spot {
+  background-color: var(--light-color);
+  border-radius: 8px;
+  padding: 1.5rem;
+  text-align: center;
+  transition: all 0.3s ease;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 200px;
+}
+
+.parking-spot i {
+  font-size: 3rem;
+  margin-bottom: 1rem;
+  color: #7f8c8d;
+  opacity: 0.3;
+  transition: all 0.3s ease;
+}
+
+.parking-spot span {
+  font-weight: bold;
+  margin-bottom: 0.5rem;
+}
+
+.sensor-value {
+  font-size: 0.9rem;
+  margin-top: 0.5rem;
+  padding: 0.25rem 0.5rem;
+  background-color: rgba(0, 0, 0, 0.05);
+  border-radius: 4px;
+  margin-bottom: 1rem;
+}
+
+/* Button Styles */
+.reserve-button, .cancel-button {
+  padding: 0.5rem 1rem;
+  border: none;
+  border-radius: 4px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  margin-top: 0.5rem;
+  width: 100%;
+  max-width: 180px;
+}
+
+.reserve-button {
+  background-color: var(--primary-color);
+  color: white;
+}
+
+.reserve-button:hover {
+  background-color: #2980b9;
+}
+
+.cancel-button {
+  background-color: #e74c3c;
+  color: white;
+}
+
+.cancel-button:hover {
+  background-color: #c0392b;
+}
+
+/* Status-specific styles */
+.parking-spot.available {
+  border: 2px solid var(--available-color);
+}
+
+.parking-spot.available i {
+  color: var(--available-color);
+  opacity: 1;
+}
+
+.parking-spot.available::before {
+  content: "Available";
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background-color: var(--available-color);
+  color: white;
+  padding: 0.2rem 0.5rem;
+  border-radius: 4px;
+  font-size: 0.8rem;
+}
+
+.parking-spot.reserved {
+  border: 2px solid var(--reserved-color);
+}
+
+.parking-spot.reserved i {
+  color: var(--reserved-color);
+  opacity: 1;
+}
+
+.parking-spot.reserved::before {
+  content: "Reserved";
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background-color: var(--reserved-color);
+  color: white;
+  padding: 0.2rem 0.5rem;
+  border-radius: 4px;
+  font-size: 0.8rem;
+}
+
+.parking-spot.occupied {
+  border: 2px solid var(--occupied-color);
+}
+
+.parking-spot.occupied i {
+  color: var(--occupied-color);
+  opacity: 1;
+}
+
+.parking-spot.occupied::before {
+  content: "Occupied";
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background-color: var(--occupied-color);
+  color: white;
+  padding: 0.2rem 0.5rem;
+  border-radius: 4px;
+  font-size: 0.8rem;
+}
+
+/* Modal Styles */
+.modal {
+  display: none;
+  position: fixed;
+  z-index: 1000;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.6);
+}
+
+.modal-content {
+  background-color: white;
+  margin: 15% auto;
+  padding: 2rem;
+  border-radius: 10px;
+  width: 80%;
+  max-width: 500px;
+  position: relative;
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+  animation: modalFadeIn 0.3s;
+}
+
+@keyframes modalFadeIn {
+  from {opacity: 0; transform: translateY(-50px);}
+  to {opacity: 1; transform: translateY(0);}
+}
+
+.close-button {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  font-size: 1.5rem;
+  cursor: pointer;
+}
+
+.close-button:hover {
+  color: var(--accent-color);
+}
+
+.modal-content h2 {
+  color: var(--primary-color);
+  margin-bottom: 1rem;
+}
+
+.reservation-time {
+  background-color: var(--light-color);
+  padding: 1rem;
+  margin-top: 1.5rem;
+  border-radius: 6px;
+}
+
+.reservation-time p {
+  margin-bottom: 0.5rem;
+}
+
+.reservation-time span {
+  font-weight: bold;
+  color: var(--secondary-color);
+}
+
+/* Footer */
+footer {
+  background-color: var(--dark-color);
+  color: white;
+  text-align: center;
+  padding: 1rem;
+  margin-top: auto;
+}
+
+/* Responsive Adjustments */
+@media (max-width: 768px) {
+  .header {
+    flex-direction: column;
+    text-align: center;
+    padding: 1rem;
+  }
+  
+  .logo {
+    margin-right: 0;
+    margin-bottom: 0.5rem;
+  }
+  
+  .parking-summary {
+    flex-wrap: wrap;
+  }
+  
+  .summary-item {
+    flex-basis: 50%;
+  }
+  
+  .dashboard {
+    padding: 1rem;
+  }
+  
+  .modal-content {
+    width: 90%;
+    margin: 30% auto;
+  }
+}
