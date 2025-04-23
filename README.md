@@ -3,12 +3,12 @@
 
 Este proyecto implementa un sistema de estacionamiento inteligente utilizando un ESP32 y comunicación mediante WebSockets.
 
-Nos basamos en este tutorial para guiar el desarrollo:  
+Nos basamos en este tutorial para guiar el desarrollo (Sigan todo el tutorial, vamos a usar el ambiente similar, nada más que nuestro sensor es de próximidad):  
 🔗 [ESP32 WebSocket Server + Sensor](https://randomnerdtutorials.com/esp32-websocket-server-sensor/)
 
 ---
 
-## 🛠 Requisitos
+## 🛠 Requisitos Adicionales que vienen en el tutorial
 
 ### 📦 Añadir soporte para ESP32 en Arduino IDE
 
