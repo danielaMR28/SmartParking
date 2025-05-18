@@ -5,7 +5,7 @@
 #include "LittleFS.h"
 #include <Arduino_JSON.h>
 
-// Replace with your network credentials
+// network credentials
 const char* ssid = "iPhone DMR";
 const char* password = "contraseña";
 
