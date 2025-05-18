@@ -1,18 +1,436 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es">
 <head>
-    <title>Smart Parking Monitor</title>
+    <title>Estacionamiento Inteligente</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="icon" type="image/png" href="favicon.png">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" type="text/css" href="style.css">
+    <style>
+        /* Base Styles */
+        :root {
+          --primary-color: #3498db;
+          --secondary-color: #2c3e50;
+          --available-color: #2ecc71;
+          --occupied-color: #e74c3c;
+          --text-color: #333;
+          --light-color: #ecf0f1;
+          --dark-color: #2c3e50;
+          --shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+          --card-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+        }
+
+        * {
+          box-sizing: border-box;
+          margin: 0;
+          padding: 0;
+        }
+
+        body {
+          font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+          line-height: 1.6;
+          color: var(--text-color);
+          background-color: #f8f9fa;
+        }
+
+        /* Header */
+        .header {
+          background: linear-gradient(135deg, var(--primary-color), var(--dark-color));
+          color: white;
+          padding: 1rem 2rem;
+          display: flex;
+          align-items: center;
+          box-shadow: var(--shadow);
+        }
+
+        .logo {
+          font-size: 2rem;
+          margin-right: 1rem;
+          color: white;
+          background-color: rgba(255, 255, 255, 0.2);
+          width: 50px;
+          height: 50px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          border-radius: 50%;
+        }
+
+        .header h1 {
+          font-size: 1.5rem;
+          font-weight: 500;
+        }
+
+        /* Dashboard */
+        .dashboard {
+          padding: 2rem;
+          max-width: 1200px;
+          margin: 0 auto;
+        }
+
+        /* Status Card */
+        .status-container {
+          margin-bottom: 2rem;
+        }
+
+        .status-card {
+          background-color: white;
+          border-radius: 10px;
+          box-shadow: var(--shadow);
+          overflow: hidden;
+        }
+
+        .card-header {
+          background-color: var(--secondary-color);
+          color: white;
+          padding: 1rem;
+          display: flex;
+          align-items: center;
+        }
+
+        .card-header i {
+          font-size: 1.5rem;
+          margin-right: 0.8rem;
+        }
+
+        .card-header h2 {
+          font-size: 1.3rem;
+          font-weight: 500;
+        }
+
+        /* Parking Summary */
+        .parking-summary {
+          display: flex;
+          justify-content: space-around;
+          padding: 1.5rem;
+        }
+
+        .summary-item {
+          text-align: center;
+          flex: 1;
+          padding: 0.5rem;
+        }
+
+        .summary-value {
+          font-size: 2rem;
+          font-weight: bold;
+          margin-bottom: 0.5rem;
+        }
+
+        .summary-item:nth-child(1) .summary-value {
+          color: var(--available-color);
+        }
+
+        .summary-item:nth-child(2) .summary-value {
+          color: var(--occupied-color);
+        }
+
+        .summary-item:nth-child(3) .summary-value {
+          color: var(--primary-color);
+        }
+
+        .summary-label {
+          font-size: 1rem;
+          color: var(--secondary-color);
+        }
+
+        /* Parking Visualization */
+        .parking-visualization, .navigation-section {
+          background-color: white;
+          border-radius: 10px;
+          box-shadow: var(--shadow);
+          overflow: hidden;
+          margin-bottom: 2rem;
+        }
+
+        .visual-title {
+          background-color: var(--secondary-color);
+          color: white;
+          padding: 1rem;
+          display: flex;
+          align-items: center;
+        }
+
+        .visual-title i {
+          font-size: 1.5rem;
+          margin-right: 0.8rem;
+        }
+
+        .visual-title h2 {
+          font-size: 1.3rem;
+          font-weight: 500;
+        }
+
+        /* Parking Grid */
+        .parking-grid {
+          display: grid;
+          grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+          gap: 1.5rem;
+          padding: 1.5rem;
+        }
+
+        .parking-spot {
+          border-radius: 12px;
+          padding: 1.5rem;
+          cursor: pointer;
+          transition: all 0.3s ease;
+          display: flex;
+          flex-direction: column;
+          justify-content: space-between;
+          min-height: 180px;
+          box-shadow: var(--card-shadow);
+          border: 2px solid transparent;
+          background-color: white;
+          position: relative;
+          overflow: hidden;
+          text-align: center;
+        }
+
+        .parking-spot.available {
+          border-color: var(--available-color);
+        }
+
+        .parking-spot.occupied {
+          border-color: var(--occupied-color);
+        }
+
+        .spot-header {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          margin-bottom: 1rem;
+        }
+
+        .spot-number {
+          font-size: 1.8rem;
+          font-weight: bold;
+          color: var(--secondary-color);
+          background-color: rgba(0, 0, 0, 0.05);
+          width: 40px;
+          height: 40px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          border-radius: 50%;
+          margin: 0 auto;
+        }
+
+        .spot-icon {
+          font-size: 1.8rem;
+          color: var(--secondary-color);
+          opacity: 0.3;
+        }
+
+        .parking-spot.available .spot-icon {
+          color: var(--available-color);
+          opacity: 1;
+        }
+
+        .parking-spot.occupied .spot-icon {
+          color: var(--occupied-color);
+          opacity: 1;
+        }
+
+        .spot-status {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          margin-top: 1rem;
+        }
+
+        .status-text {
+          font-size: 1.1rem;
+          font-weight: 600;
+          margin-bottom: 0.5rem;
+        }
+
+        .status-indicator {
+          width: 100%;
+          height: 6px;
+          border-radius: 3px;
+          background-color: #eee;
+          position: relative;
+          overflow: hidden;
+        }
+
+        .status-indicator::after {
+          content: '';
+          position: absolute;
+          top: 0;
+          left: 0;
+          width: 100%;
+          height: 100%;
+          transition: all 0.3s ease;
+        }
+
+        .parking-spot.available .status-indicator::after {
+          background-color: var(--available-color);
+        }
+
+        .parking-spot.occupied .status-indicator::after {
+          background-color: var(--occupied-color);
+        }
+
+        /* Pulse animation for available spots */
+        .parking-spot.available {
+          animation: pulseAvailable 3s infinite;
+        }
+
+        @keyframes pulseAvailable {
+          0% { box-shadow: 0 0 0 0 rgba(46, 204, 113, 0.4); }
+          70% { box-shadow: 0 0 0 10px rgba(46, 204, 113, 0); }
+          100% { box-shadow: 0 0 0 0 rgba(46, 204, 113, 0); }
+        }
+
+        /* Hover effects */
+        .parking-spot:hover {
+          transform: translateY(-5px);
+          box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Badge for status */
+        .parking-spot::before {
+          content: '';
+          position: absolute;
+          top: 0;
+          right: 0;
+          width: 0;
+          height: 0;
+          border-style: solid;
+          border-width: 0 50px 50px 0;
+          border-color: transparent var(--available-color) transparent transparent;
+          opacity: 0;
+          transition: all 0.3s ease;
+        }
+
+        .parking-spot.available::before {
+          border-color: transparent var(--available-color) transparent transparent;
+          opacity: 1;
+        }
+
+        .parking-spot.occupied::before {
+          border-color: transparent var(--occupied-color) transparent transparent;
+          opacity: 1;
+        }
+
+        /* Navigation Section */
+        .navigation-section {
+          background-color: white;
+          border-radius: 12px;
+          box-shadow: var(--shadow);
+          overflow: hidden;
+          margin-bottom: 2rem;
+          transform: translateY(0);
+          opacity: 1;
+          transition: all 0.5s ease;
+        }
+
+        .navigation-section.hidden {
+          display: none;
+        }
+
+        .navigation-section.show {
+          transform: translateY(0);
+          opacity: 1;
+        }
+
+        /* Navigation Path */
+        .navigation-path {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          gap: 1.5rem;
+          padding: 1.5rem;
+        }
+
+        .path-step {
+          display: flex;
+          align-items: center;
+          gap: 1rem;
+          width: 100%;
+          max-width: 300px;
+          animation: pulse 2s infinite;
+        }
+
+        .step-icon {
+          font-size: 2rem;
+          color: var(--primary-color);
+          width: 50px;
+          height: 50px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          background-color: white;
+          border-radius: 50%;
+          box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .step-text {
+          font-size: 1rem;
+          font-weight: 500;
+        }
+
+        /* Animations */
+        @keyframes pulse {
+          0% { transform: scale(1); }
+          50% { transform: scale(1.05); }
+          100% { transform: scale(1); }
+        }
+
+        .path-step:nth-child(2) {
+          animation-delay: 0.3s;
+        }
+
+        .path-step:nth-child(3) {
+          animation-delay: 0.6s;
+        }
+
+        /* Footer */
+        footer {
+          background-color: var(--dark-color);
+          color: white;
+          text-align: center;
+          padding: 1rem;
+        }
+
+        /* Responsive Adjustments */
+        @media (max-width: 768px) {
+          .parking-summary {
+            flex-wrap: wrap;
+          }
+          
+          .summary-item {
+            flex-basis: 50%;
+            margin-bottom: 1rem;
+          }
+          
+          .dashboard {
+            padding: 1rem;
+          }
+          
+          .parking-grid {
+            grid-template-columns: 1fr 1fr;
+          }
+        }
+
+        @media (max-width: 480px) {
+          .parking-grid {
+            grid-template-columns: 1fr;
+          }
+          
+          .path-step {
+            flex-direction: column;
+            text-align: center;
+            gap: 0.5rem;
+          }
+        }
+    </style>
 </head>
 <body>
     <div class="header">
         <div class="logo">
             <i class="fas fa-parking"></i>
         </div>
-        <h1>Smart Parking Monitor</h1>
+        <h1>Estacionamiento Inteligente</h1>
     </div>
 
     <div class="dashboard">
@@ -20,23 +438,19 @@
             <div class="status-card">
                 <div class="card-header">
                     <i class="fas fa-chart-pie"></i>
-                    <h2>Parking Overview</h2>
+                    <h2>Resumen del Estacionamiento</h2>
                 </div>
                 <div class="parking-summary">
                     <div class="summary-item">
                         <div class="summary-value" id="available-count">0</div>
-                        <div class="summary-label">Available</div>
-                    </div>
-                    <div class="summary-item">
-                        <div class="summary-value" id="reserved-count">0</div>
-                        <div class="summary-label">Reserved</div>
+                        <div class="summary-label">Disponibles</div>
                     </div>
                     <div class="summary-item">
                         <div class="summary-value" id="occupied-count">0</div>
-                        <div class="summary-label">Occupied</div>
+                        <div class="summary-label">Ocupados</div>
                     </div>
                     <div class="summary-item">
-                        <div class="summary-value" id="total-spots">2</div>
+                        <div class="summary-value" id="total-spots">5</div>
                         <div class="summary-label">Total</div>
                     </div>
                 </div>
@@ -45,260 +459,320 @@
 
         <div class="parking-visualization">
             <div class="visual-title">
-                <i class="fas fa-map-marker-alt"></i>
-                <h2>Parking Lot Status</h2>
+                <i class="fas fa-car"></i>
+                <h2>Estado de los Espacios</h2>
             </div>
-            <div class="parking-lot">
-                <div class="parking-spot" id="spot1">
-                    <i class="fas fa-car"></i>
-                    <span>Spot 1</span>
-                    <div class="sensor-value">Status: <span id="ir_sensor1">--</span></div>
-                    <button class="reserve-button" id="reserve-button1">Reserve Spot</button>
-                    <button class="cancel-button" id="cancel-button1">Cancel Reservation</button>
+            <div class="parking-grid">
+                <div class="parking-spot" id="spot1" data-spot="1">
+                    <div class="spot-header">
+                        <div class="spot-number">1</div>
+                        <div class="spot-icon" id="spot-icon1">
+                            <i class="fas fa-car"></i>
+                        </div>
+                    </div>
+                    <div class="spot-status" id="ir_sensor1" data-status="1">
+                        <span class="status-text">Cargando...</span>
+                        <span class="status-indicator"></span>
+                    </div>
                 </div>
-                <div class="parking-spot" id="spot2">
-                    <i class="fas fa-car"></i>
-                    <span>Spot 2</span>
-                    <div class="sensor-value">Status: <span id="ir_sensor2">--</span></div>
-                    <button class="reserve-button" id="reserve-button2">Reserve Spot</button>
-                    <button class="cancel-button" id="cancel-button2">Cancel Reservation</button>
+                <div class="parking-spot" id="spot2" data-spot="2">
+                    <div class="spot-header">
+                        <div class="spot-number">2</div>
+                        <div class="spot-icon" id="spot-icon2">
+                            <i class="fas fa-car"></i>
+                        </div>
+                    </div>
+                    <div class="spot-status" id="ir_sensor2" data-status="1">
+                        <span class="status-text">Cargando...</span>
+                        <span class="status-indicator"></span>
+                    </div>
+                </div>
+                <div class="parking-spot" id="spot3" data-spot="3">
+                    <div class="spot-header">
+                        <div class="spot-number">3</div>
+                        <div class="spot-icon" id="spot-icon3">
+                            <i class="fas fa-car"></i>
+                        </div>
+                    </div>
+                    <div class="spot-status" id="ir_sensor3" data-status="1">
+                        <span class="status-text">Cargando...</span>
+                        <span class="status-indicator"></span>
+                    </div>
+                </div>
+                <div class="parking-spot" id="spot4" data-spot="4">
+                    <div class="spot-header">
+                        <div class="spot-number">4</div>
+                        <div class="spot-icon" id="spot-icon4">
+                            <i class="fas fa-car"></i>
+                        </div>
+                    </div>
+                    <div class="spot-status" id="ir_sensor4" data-status="1">
+                        <span class="status-text">Cargando...</span>
+                        <span class="status-indicator"></span>
+                    </div>
+                </div>
+                <div class="parking-spot" id="spot5" data-spot="5">
+                    <div class="spot-header">
+                        <div class="spot-number">5</div>
+                        <div class="spot-icon" id="spot-icon5">
+                            <i class="fas fa-car"></i>
+                        </div>
+                    </div>
+                    <div class="spot-status" id="ir_sensor5" data-status="1">
+                        <span class="status-text">Cargando...</span>
+                        <span class="status-indicator"></span>
+                    </div>
                 </div>
             </div>
         </div>
-    </div>
 
-    <div id="reservation-modal" class="modal">
-        <div class="modal-content">
-            <span class="close-button">&times;</span>
-            <h2>Reservation Confirmed</h2>
-            <p>Your parking spot has been reserved. Please arrive within 30 minutes to claim your spot.</p>
-            <div class="reservation-time">
-                <p>Reserved at: <span id="reservation-timestamp"></span></p>
-                <p>Expires at: <span id="expiration-timestamp"></span></p>
+        <div class="navigation-section hidden" id="navigationSection">
+            <div class="visual-title">
+                <i class="fas fa-route"></i>
+                <h2>Navegación a <span id="selectedSpotText">Espacio 1</span></h2>
+            </div>
+            <div class="navigation-path">
+                <div class="path-step">
+                    <div class="step-icon"><i class="fas fa-arrow-right"></i></div>
+                    <div class="step-text">Avanzar recto</div>
+                </div>
+                <div class="path-step">
+                    <div class="step-icon"><i class="fas fa-undo"></i></div>
+                    <div class="step-text">Girar en U a la derecha</div>
+                </div>
+                <div class="path-step">
+                    <div class="step-icon"><i class="fas fa-arrow-right"></i></div>
+                    <div class="step-text">Encontrar <span id="spotLocation">Espacio 1</span> a la izquierda</div>
+                </div>
             </div>
         </div>
     </div>
 
     <footer>
-        <p>Mall Parking System | ESP32 WebSocket Demo</p>
+        <p>Sistema Visual de Estacionamiento | Demo WebSocket ESP32</p>
     </footer>
 
-    <script src="script.js"></script>
     <script>
-        // Additional script to handle UI interactions and state management
-        document.addEventListener('DOMContentLoaded', function() {
-            // Keep track of reservations
-            const reservations = {
-                spot1: false,
-                spot2: false
+        var gateway = `ws://${window.location.hostname}/ws`;
+        var websocket;
+        
+        window.addEventListener('load', onload);
+        
+        function onload(event) {
+            initWebSocket();
+            initializeParking();
+        }
+        
+        function initializeParking() {
+            // Set initial states for testing and demonstration
+            // In production, these will be updated by WebSocket data
+            updateParkingStates();
+            
+            const parkingSpots = document.querySelectorAll('.parking-spot');
+            const navigationSection = document.getElementById('navigationSection');
+            const selectedSpotText = document.getElementById('selectedSpotText');
+            const spotLocation = document.getElementById('spotLocation');
+            
+            // Add click event to each parking spot
+            parkingSpots.forEach(spot => {
+                spot.addEventListener('click', function() {
+                    const spotNumber = this.getAttribute('data-spot');
+                    const statusElement = document.getElementById(`ir_sensor${spotNumber}`);
+                    
+                    // Update text in navigation section
+                    selectedSpotText.textContent = `Espacio ${spotNumber}`;
+                    spotLocation.textContent = `Espacio ${spotNumber}`;
+                    
+                    // Show navigation section with animation
+                    navigationSection.classList.remove('hidden');
+                    
+                    // Add show class which triggers CSS transition
+                    setTimeout(() => {
+                        navigationSection.classList.add('show');
+                    }, 10);
+                    
+                    // Scroll to navigation
+                    navigationSection.scrollIntoView({ behavior: 'smooth' });
+                });
+            });
+        }
+        
+        // Function to initialize test data for local development
+        function initializeTestData() {
+            const testData = {
+                ir_sensor1: Math.random() > 0.5 ? "1" : "0",
+                ir_sensor2: Math.random() > 0.5 ? "1" : "0",
+                ir_sensor3: Math.random() > 0.5 ? "1" : "0",
+                ir_sensor4: Math.random() > 0.5 ? "1" : "0",
+                ir_sensor5: Math.random() > 0.5 ? "1" : "0"
             };
             
-            // Get all needed elements
-            const spot1 = document.getElementById('spot1');
-            const spot2 = document.getElementById('spot2');
-            const reserveButton1 = document.getElementById('reserve-button1');
-            const reserveButton2 = document.getElementById('reserve-button2');
-            const cancelButton1 = document.getElementById('cancel-button1');
-            const cancelButton2 = document.getElementById('cancel-button2');
-            const modal = document.getElementById('reservation-modal');
-            const closeButton = document.querySelector('.close-button');
-            const reservationTimestamp = document.getElementById('reservation-timestamp');
-            const expirationTimestamp = document.getElementById('expiration-timestamp');
+            // Process test data as if it was received from WebSocket
+            const jsonStr = JSON.stringify(testData);
+            processData(jsonStr);
             
-            // Initially hide cancel buttons
-            cancelButton1.style.display = 'none';
-            cancelButton2.style.display = 'none';
+            // Initialize parking spots click handlers
+            initializeClickHandlers();
+        }
+        
+        function processData(jsonStr) {
+            var myObj = JSON.parse(jsonStr);
+            var keys = Object.keys(myObj);
             
-            // Function to update counts
-            function updateCounts() {
-                let availableCount = 0;
-                let reservedCount = 0;
-                let occupiedCount = 0;
-                
-                // Check spot1
-                if (spot1.classList.contains('available')) availableCount++;
-                else if (spot1.classList.contains('reserved')) reservedCount++;
-                else if (spot1.classList.contains('occupied')) occupiedCount++;
-                
-                // Check spot2
-                if (spot2.classList.contains('available')) availableCount++;
-                else if (spot2.classList.contains('reserved')) reservedCount++;
-                else if (spot2.classList.contains('occupied')) occupiedCount++;
-                
-                document.getElementById('available-count').innerText = availableCount;
-                document.getElementById('reserved-count').innerText = reservedCount;
-                document.getElementById('occupied-count').innerText = occupiedCount;
-            }
-            
-            // Function to update parking status based on sensor values
-            function updateParkingStatus() {
-                // Process spot1
-                const sensorValue1 = document.getElementById('ir_sensor1').innerText;
-                if (sensorValue1 !== "--") {
-                    const isOccupied1 = sensorValue1 === "0";
-                    
-                    // Only update if not already reserved
-                    if (!reservations.spot1) {
-                        if (isOccupied1) {
-                            spot1.classList.remove('available', 'reserved');
-                            spot1.classList.add('occupied');
-                            reserveButton1.style.display = 'none';
-                        } else {
-                            spot1.classList.remove('occupied', 'reserved');
-                            spot1.classList.add('available');
-                            reserveButton1.style.display = 'block';
-                        }
-                    }
-                }
-                
-                // Process spot2
-                const sensorValue2 = document.getElementById('ir_sensor2').innerText;
-                if (sensorValue2 !== "--") {
-                    const isOccupied2 = sensorValue2 === "0";
-                    
-                    // Only update if not already reserved
-                    if (!reservations.spot2) {
-                        if (isOccupied2) {
-                            spot2.classList.remove('available', 'reserved');
-                            spot2.classList.add('occupied');
-                            reserveButton2.style.display = 'none';
-                        } else {
-                            spot2.classList.remove('occupied', 'reserved');
-                            spot2.classList.add('available');
-                            reserveButton2.style.display = 'block';
-                        }
-                    }
-                }
-                
-                updateCounts();
-            }
-            
-            // Reserve button click handlers
-            reserveButton1.addEventListener('click', function() {
-                if (spot1.classList.contains('available')) {
-                    spot1.classList.remove('available');
-                    spot1.classList.add('reserved');
-                    reservations.spot1 = true;
-                    reserveButton1.style.display = 'none';
-                    cancelButton1.style.display = 'block';
-                    
-                    // Show reservation confirmation
-                    showReservationConfirmation('spot1');
-                    updateCounts();
-                }
-            });
-            
-            reserveButton2.addEventListener('click', function() {
-                if (spot2.classList.contains('available')) {
-                    spot2.classList.remove('available');
-                    spot2.classList.add('reserved');
-                    reservations.spot2 = true;
-                    reserveButton2.style.display = 'none';
-                    cancelButton2.style.display = 'block';
-                    
-                    // Show reservation confirmation
-                    showReservationConfirmation('spot2');
-                    updateCounts();
-                }
-            });
-            
-            // Cancel button click handlers
-            cancelButton1.addEventListener('click', function() {
-                spot1.classList.remove('reserved');
-                spot1.classList.add('available');
-                reservations.spot1 = false;
-                cancelButton1.style.display = 'none';
-                reserveButton1.style.display = 'block';
-                updateCounts();
-            });
-            
-            cancelButton2.addEventListener('click', function() {
-                spot2.classList.remove('reserved');
-                spot2.classList.add('available');
-                reservations.spot2 = false;
-                cancelButton2.style.display = 'none';
-                reserveButton2.style.display = 'block';
-                updateCounts();
-            });
-            
-            // Format time function
-            function formatTime(date) {
-                return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-            }
-            
-            // Show reservation confirmation modal
-            function showReservationConfirmation(spotId) {
-                const now = new Date();
-                const expirationTime = new Date(now.getTime() + 60 * 1000); // 30 minutes later
-                
-                reservationTimestamp.textContent = formatTime(now);
-                expirationTimestamp.textContent = formatTime(expirationTime);
-                
-                modal.style.display = 'block';
-                
-                // Set a timeout to auto-expire the reservation
-                setTimeout(function() {
-                    if (spotId === 'spot1' && reservations.spot1) {
-                        // Only expire if still reserved (not occupied)
-                        const currentStatus = document.getElementById('ir_sensor1').innerText;
-                        if (currentStatus !== "0") {
-                            spot1.classList.remove('reserved');
-                            spot1.classList.add('available');
-                            reservations.spot1 = false;
-                            cancelButton1.style.display = 'none';
-                            reserveButton1.style.display = 'block';
-                            updateCounts();
-                        }
-                    } else if (spotId === 'spot2' && reservations.spot2) {
-                        // Only expire if still reserved (not occupied)
-                        const currentStatus = document.getElementById('ir_sensor2').innerText;
-                        if (currentStatus !== "Object Detected") {
-                            spot2.classList.remove('reserved');
-                            spot2.classList.add('available');
-                            reservations.spot2 = false;
-                            cancelButton2.style.display = 'none';
-                            reserveButton2.style.display = 'block';
-                            updateCounts();
-                        }
-                    }
-                }, 60 * 1000);
-            }
-            
-            // Close modal when clicking the X
-            closeButton.addEventListener('click', function() {
-                modal.style.display = 'none';
-            });
-            
-            // Close modal when clicking outside of it
-            window.addEventListener('click', function(event) {
-                if (event.target === modal) {
-                    modal.style.display = 'none';
-                }
-            });
-            
-            // Monitor changes to sensor elements
-            const sensorElements = [
-                document.getElementById('ir_sensor1'),
-                document.getElementById('ir_sensor2')
-            ];
-            
-            // Create observers for sensors
-            sensorElements.forEach(element => {
+            for (var i = 0; i < keys.length; i++) {
+                var key = keys[i];
+                var element = document.getElementById(key);
                 if (element) {
-                    const observer = new MutationObserver(function(mutations) {
-                        updateParkingStatus();
-                    });
+                    // Update the element's data-status attribute
+                    element.setAttribute('data-status', myObj[key]);
                     
-                    observer.observe(element, { 
-                        childList: true,
-                        characterData: true,
-                        subtree: true
-                    });
+                    // Update the text content of the status
+                    const statusText = element.querySelector('.status-text');
+                    if (statusText) {
+                        statusText.textContent = myObj[key] === "1" ? "Disponible" : "Ocupado";
+                    }
+                    
+                    // Update the appearance of the spot
+                    var spotNumber = key.replace('ir_sensor', '');
+                    var spot = document.getElementById(`spot${spotNumber}`);
+                    var iconElement = document.getElementById(`spot-icon${spotNumber}`);
+                    
+                    if (spot && iconElement) {
+                        updateSpotAppearance(spot, iconElement, element, myObj[key]);
+                    }
                 }
-            });
+            }
             
-            // Initialize status
-            updateParkingStatus();
+            updateCounts();
+        }
+        
+        function initializeClickHandlers() {
+            const parkingSpots = document.querySelectorAll('.parking-spot');
+            const navigationSection = document.getElementById('navigationSection');
+            const selectedSpotText = document.getElementById('selectedSpotText');
+            const spotLocation = document.getElementById('spotLocation');
+            
+            // Add click event to each parking spot
+            parkingSpots.forEach(spot => {
+                spot.addEventListener('click', function() {
+                    const spotNumber = this.getAttribute('data-spot');
+                    
+                    // Update text in navigation section
+                    selectedSpotText.textContent = `Espacio ${spotNumber}`;
+                    spotLocation.textContent = `Espacio ${spotNumber}`;
+                    
+                    // Show navigation section and remove hidden class
+                    navigationSection.classList.remove('hidden');
+                    
+                    // Add show class which triggers CSS transition
+                    setTimeout(() => {
+                        navigationSection.classList.add('show');
+                    }, 10);
+                    
+                    // Scroll to navigation
+                    navigationSection.scrollIntoView({ behavior: 'smooth' });
+                });
+            });
+        }
+        
+        function updateSpotAppearance(spot, iconElement, statusElement, status) {
+            if (status === '0') {
+                spot.className = 'parking-spot occupied';
+                iconElement.innerHTML = '<i class="fas fa-car-side"></i>';
+                statusElement.querySelector('.status-text').textContent = 'Ocupado';
+            } else if (status === '1') {
+                spot.className = 'parking-spot available';
+                iconElement.innerHTML = '<i class="fas fa-parking"></i>';
+                statusElement.querySelector('.status-text').textContent = 'Disponible';
+            }
+        }
+        
+        function getReadings(){
+            websocket.send("getReadings");
+        }
+        
+        function initWebSocket() {
+            console.log('Intentando abrir una conexión WebSocket...');
+            
+            // For testing locally without WebSocket connection
+            if (window.location.hostname === "" || window.location.hostname === "localhost") {
+                console.log('Ejecutando en modo local - WebSocket deshabilitado');
+                return;
+            }
+            
+            websocket = new WebSocket(gateway);
+            websocket.onopen = onOpen;
+            websocket.onclose = onClose;
+            websocket.onmessage = onMessage;
+        }
+        
+        function onOpen(event) {
+            console.log('Conexión abierta');
+            getReadings();
+        }
+        
+        function onClose(event) {
+            console.log('Conexión cerrada');
+            setTimeout(initWebSocket, 2000);
+        }
+        
+        function onMessage(event) {
+            console.log(event.data);
+            var myObj = JSON.parse(event.data);
+            var keys = Object.keys(myObj);
+        
+            for (var i = 0; i < keys.length; i++){
+                var key = keys[i];
+                var element = document.getElementById(key);
+                if (element) {
+                    // Update the element's data-status attribute
+                    element.setAttribute('data-status', myObj[key]);
+                    
+                    // Update the text content of the status
+                    const statusText = element.querySelector('.status-text');
+                    if (statusText) {
+                        statusText.textContent = myObj[key] === "1" ? "Disponible" : "Ocupado";
+                    }
+                    
+                    // Update the appearance of the spot
+                    var spotNumber = key.replace('ir_sensor', '');
+                    var spot = document.getElementById(`spot${spotNumber}`);
+                    var iconElement = document.getElementById(`spot-icon${spotNumber}`);
+                    
+                    if (spot && iconElement) {
+                        updateSpotAppearance(spot, iconElement, element, myObj[key]);
+                    }
+                }
+            }
+            
+            // Update counts when new data arrives
+            updateCounts();
+        }
+        
+        function updateCounts() {
+            let available = 0;
+            let occupied = 0;
+            
+            for (let i = 1; i <= 5; i++) {
+                const element = document.getElementById(`ir_sensor${i}`);
+                if (element) {
+                    const status = element.getAttribute('data-status');
+                    if (status === '0') {
+                        occupied++;
+                    } else if (status === '1') {
+                        available++;
+                    }
+                }
+            }
+            
+            document.getElementById('available-count').innerText = available;
+            document.getElementById('occupied-count').innerText = occupied;
+        }
+        
+        // Initialize the click handlers for the parking spots
+        document.addEventListener('DOMContentLoaded', function() {
+            // Initialize click handlers - will be called by WebSocket or test data initializer
+            initializeClickHandlers();
         });
     </script>
 </body>
